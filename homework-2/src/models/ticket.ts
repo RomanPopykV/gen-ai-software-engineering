@@ -49,8 +49,8 @@ export interface Ticket {
   customer_name: string;
   subject: string;
   description: string;
-  category: Category;
-  priority: Priority;
+  category?: Category | null;
+  priority?: Priority | null;
   status: Status;
   created_at: string;
   updated_at: string;
@@ -66,8 +66,8 @@ export interface CreateTicketPayload {
   customer_name: string;
   subject: string;
   description: string;
-  category: Category;
-  priority: Priority;
+  category?: Category | null;
+  priority?: Priority | null;
   status?: Status;
   assigned_to?: string;
   tags?: string[];

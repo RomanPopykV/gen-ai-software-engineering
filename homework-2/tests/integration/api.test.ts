@@ -61,6 +61,31 @@ describe('POST /tickets', () => {
     expect(res.status).toBe(400);
     expect(res.body.details.some((d: any) => d.field === 'description')).toBe(true);
   });
+
+  it('creates a ticket without category and priority', async () => {
+    const { category: _c, priority: _p, ...withoutCatPri } = validPayload;
+    const res = await request(app).post('/tickets').send(withoutCatPri);
+    expect(res.status).toBe(201);
+    expect(res.body.id).toBeDefined();
+    expect(res.body.category).toBeUndefined();
+    expect(res.body.priority).toBeUndefined();
+  });
+
+  it('creates a ticket with null category and priority', async () => {
+    const res = await request(app)
+      .post('/tickets')
+      .send({ ...validPayload, category: null, priority: null });
+    expect(res.status).toBe(201);
+    expect(res.body.category).toBeUndefined();
+    expect(res.body.priority).toBeUndefined();
+  });
+
+  it('returns 400 for invalid category enum', async () => {
+    const res = await request(app)
+      .post('/tickets')
+      .send({ ...validPayload, category: 'invalid_category' });
+    expect(res.status).toBe(400);
+  });
 });
 
 // ─── GET /tickets ────────────────────────────────────────────────────────────

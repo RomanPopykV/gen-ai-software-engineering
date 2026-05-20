@@ -71,6 +71,25 @@ describe('createTicket', () => {
   it('throws ValidationError when required fields are missing', () => {
     expect(() => createTicket({} as Parameters<typeof createTicket>[0])).toThrow(ValidationError);
   });
+
+  it('creates a ticket without category and priority', () => {
+    const ticket = createTicket({
+      customer_id: 'cust-002',
+      customer_email: 'no-cat@example.com',
+      customer_name: 'No Category',
+      subject: 'Missing category ticket',
+      description: 'This ticket has no category or priority assigned yet.',
+    });
+    expect(ticket.id).toBeTruthy();
+    expect(ticket.category).toBeUndefined();
+    expect(ticket.priority).toBeUndefined();
+  });
+
+  it('creates a ticket with null category and priority', () => {
+    const ticket = createTicket({ ...basePayload, category: null, priority: null });
+    expect(ticket.category).toBeUndefined();
+    expect(ticket.priority).toBeUndefined();
+  });
 });
 
 // ─── getTicket ─────────────────────────────────────────────────────────────

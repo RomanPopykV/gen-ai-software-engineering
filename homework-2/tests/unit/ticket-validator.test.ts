@@ -18,6 +18,14 @@ const validPayload = {
   status: Status.New,
 };
 
+const minimalPayload = {
+  customer_id: 'cust-002',
+  customer_email: 'jane@example.com',
+  customer_name: 'Jane Doe',
+  subject: 'App not loading',
+  description: 'The application fails to load on my device.',
+};
+
 const stubTicket: Ticket = {
   id: 'ticket-uuid-1',
   ...validPayload,
@@ -66,6 +74,24 @@ describe('validateCreateTicket', () => {
     expect(() =>
       validateCreateTicket({ ...validPayload, description: 'x'.repeat(2001) })
     ).toThrow(ValidationError);
+  });
+
+  it('accepts a ticket without category and priority', () => {
+    const result = validateCreateTicket(minimalPayload);
+    expect(result.category).toBeUndefined();
+    expect(result.priority).toBeUndefined();
+  });
+
+  it('accepts null category and null priority', () => {
+    const result = validateCreateTicket({ ...minimalPayload, category: null, priority: null });
+    expect(result.category).toBeNull();
+    expect(result.priority).toBeNull();
+  });
+
+  it('accepts a ticket with category but no priority', () => {
+    const result = validateCreateTicket({ ...minimalPayload, category: Category.BugReport });
+    expect(result.category).toBe(Category.BugReport);
+    expect(result.priority).toBeUndefined();
   });
 
   it('rejects an invalid category enum', () => {
