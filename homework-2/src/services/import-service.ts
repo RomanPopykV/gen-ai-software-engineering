@@ -22,6 +22,7 @@ export function importTickets(fileContent: string, format: ImportFormat): Import
         successful: 0,
         failed: 1,
         errors: [{ recordIndex: -1, errors: { format: `Unsupported format: ${format}` } }],
+        created_ids: [],
       };
     }
   } catch (err) {
@@ -31,13 +32,14 @@ export function importTickets(fileContent: string, format: ImportFormat): Import
         successful: 0,
         failed: 1,
         errors: [{ recordIndex: -1, errors: { parse: err.message } }],
+        created_ids: [],
       };
     }
     throw err;
   }
 
   if (records.length === 0) {
-    return { total: 0, successful: 0, failed: 0, errors: [] };
+    return { total: 0, successful: 0, failed: 0, errors: [], created_ids: [] };
   }
 
   let validator: (records: unknown[]) => { valid: Record<string, unknown>[]; errors: import('../models/ticket').ImportRecordError[] };
@@ -54,11 +56,13 @@ export function importTickets(fileContent: string, format: ImportFormat): Import
 
   let successful = 0;
   const importErrors = [...validationErrors];
+  const created_ids: string[] = [];
 
   records.forEach((record, index) => {
     if (errorIndexes.has(index)) return;
     try {
-      createTicket(record as unknown as Parameters<typeof createTicket>[0]);
+      const ticket = createTicket(record as unknown as Parameters<typeof createTicket>[0]);
+      created_ids.push(ticket.id);
       successful++;
     } catch (err) {
       if (err instanceof ValidationError) {
@@ -78,5 +82,6 @@ export function importTickets(fileContent: string, format: ImportFormat): Import
     successful,
     failed: records.length - successful,
     errors: importErrors,
+    created_ids,
   };
 }

@@ -1,5 +1,7 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import { importTickets, ImportFormat } from '../services/import-service';
+import { getTicket, updateTicket } from '../services/ticket-service';
+import { classifyTicket, logDecision } from '../services/classifier';
 
 const router = Router();
 
@@ -42,6 +44,22 @@ router.post('/import', (req: Request, res: Response, next: NextFunction): void =
     );
 
     const result = importTickets(content, format);
+
+    if (req.query.auto_classify === 'true') {
+      for (const id of result.created_ids) {
+        try {
+          const ticket = getTicket(id);
+          if (ticket) {
+            const classification = classifyTicket(ticket);
+            updateTicket(id, { category: classification.category, priority: classification.priority });
+            logDecision(id, ticket, classification);
+          }
+        } catch (classifyErr) {
+          console.error(`[AUTO-CLASSIFY] Failed for ticket ${id}:`, classifyErr);
+        }
+      }
+    }
+
     res.json(result);
   } catch (err) {
     next(err);

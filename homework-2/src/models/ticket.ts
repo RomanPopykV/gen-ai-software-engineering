@@ -92,9 +92,26 @@ export interface ImportResult {
   successful: number;
   failed: number;
   errors: ImportRecordError[];
+  created_ids: string[];
 }
 
 export interface ImportRecordError {
   recordIndex: number;
   errors: Record<string, string>;
+}
+
+export interface ClassificationResult {
+  category: Category;
+  priority: Priority;
+  confidence: number;
+  reasoning: string;
+  keywords_found: string[];
+}
+
+export interface ClassificationLog {
+  ticket_id: string;
+  timestamp: string;
+  subject: string;
+  description: string;
+  result: ClassificationResult;
 }

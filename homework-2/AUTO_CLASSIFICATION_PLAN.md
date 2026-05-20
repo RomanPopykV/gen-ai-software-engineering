@@ -171,18 +171,18 @@ Accept an optional `auto_classify` flag that triggers classification immediately
 - No changes to request body schema for either endpoint
 
 ##### `POST /tickets?auto_classify=true`
-- [ ] After `createTicket()` succeeds, check `req.query.auto_classify === 'true'`
-- [ ] If true: call `classifyTicket(ticket)`, then `updateTicket(ticket.id, { category, priority })`, then `logDecision()`
-- [ ] Return the **updated ticket** (with `category` and `priority` filled in) — same 201 response shape
-- [ ] If classification throws, log the error and return the ticket without classification (do not fail the request)
+- [x] After `createTicket()` succeeds, check `req.query.auto_classify === 'true'`
+- [x] If true: call `classifyTicket(ticket)`, then `updateTicket(ticket.id, { category, priority })`, then `logDecision()`
+- [x] Return the **updated ticket** (with `category` and `priority` filled in) — same 201 response shape
+- [x] If classification throws, log the error and return the ticket without classification (do not fail the request)
 
 ##### `POST /tickets/import?auto_classify=true`
 **File**: `src/routes/import.ts`
 
-- [ ] After `importTickets()` succeeds, check `req.query.auto_classify === 'true'`
-- [ ] If true: for each successfully created ticket returned from the import service, call `classifyTicket()` + `updateTicket()` + `logDecision()`
-- [ ] Return the standard `ImportResult` — classification results are stored on the tickets and visible via `GET /tickets/:id`
-- [ ] Classification errors per ticket are caught individually and do not affect the import summary
+- [x] After `importTickets()` succeeds, check `req.query.auto_classify === 'true'`
+- [x] If true: for each successfully created ticket returned from the import service, call `classifyTicket()` + `updateTicket()` + `logDecision()`
+- [x] Return the standard `ImportResult` — classification results are stored on the tickets and visible via `GET /tickets/:id`
+- [x] Classification errors per ticket are caught individually and do not affect the import summary
 
 > The import service returns only aggregate counts and errors, not the created ticket objects. To classify after import, the route needs access to the created ticket IDs. See implementation note below.
 
@@ -196,10 +196,10 @@ The current `importTickets()` return type (`ImportResult`) does not expose creat
 
 **Recommended: Option A** — extend `ImportResult` with `created_ids: string[]`.
 
-- [ ] Add `created_ids: string[]` to `ImportResult` interface in `src/models/ticket.ts`
-- [ ] Populate `created_ids` in `src/services/import-service.ts` alongside existing logic
-- [ ] Use `created_ids` in the import route to classify each ticket when flag is on
-- [ ] `created_ids` is always returned in the import response (empty array if all failed); callers may use it for other purposes
+- [x] Add `created_ids: string[]` to `ImportResult` interface in `src/models/ticket.ts`
+- [x] Populate `created_ids` in `src/services/import-service.ts` alongside existing logic
+- [x] Use `created_ids` in the import route to classify each ticket when flag is on
+- [x] `created_ids` is always returned in the import response (empty array if all failed); callers may use it for other purposes
 
 **Response shape** (unchanged except `created_ids` added):
 ```json
@@ -226,10 +226,10 @@ The current `importTickets()` return type (`ImportResult`) does not expose creat
 - [x] Multi-keyword ticket → confidence increases with match count (≤ 0.95)
 - [x] Priority keywords correctly elevate/demote priority vs. default `medium`
 - [x] TypeScript compiles without errors (`npm run build`)
-- [ ] `POST /tickets?auto_classify=true` returns 201 ticket with `category` and `priority` already set
-- [ ] `POST /tickets/import?auto_classify=true` classifies all successfully created tickets; `ImportResult` includes `created_ids`
-- [ ] Classification failure on creation does not fail the ticket creation request
-- [ ] `ImportResult` always includes `created_ids` regardless of the flag
+- [x] `POST /tickets?auto_classify=true` returns 201 ticket with `category` and `priority` already set
+- [x] `POST /tickets/import?auto_classify=true` classifies all successfully created tickets; `ImportResult` includes `created_ids`
+- [x] Classification failure on creation does not fail the ticket creation request
+- [x] `ImportResult` always includes `created_ids` regardless of the flag
 
 ---
 
