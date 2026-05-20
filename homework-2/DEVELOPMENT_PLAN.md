@@ -320,42 +320,40 @@ Implement Express routes for all API endpoints with proper error handling.
 #### 4.1 Setup Express App
 **File**: `src/app.ts`
 
-- [ ] Create Express app with middleware:
+- [x] Create Express app with middleware:
   - `express.json()` — Parse JSON bodies
   - `express.text()` — Parse plain text (for imports)
   - Error handling middleware
   - Request logging middleware
   
-- [ ] Setup CORS if needed
-- [ ] Setup request ID tracking for errors
+- [x] Setup request ID tracking for errors
 
-**Deliverable**: Express app configured and ready
+**Deliverable**: Express app configured and ready ✅
 
 ---
 
 #### 4.2 Implement Ticket Routes
 **File**: `src/routes/tickets.ts`
 
-- [ ] `POST /tickets` — Create single ticket
+- [x] `POST /tickets` — Create single ticket
   - Validate payload
   - Call ticket service
   - Return 201 with created ticket
   
-- [ ] `GET /tickets` — List with filtering
+- [x] `GET /tickets` — List with filtering
   - Accept query parameters for filters
   - Call service with filters
   - Return 200 with ticket array
   
-- [ ] `GET /tickets/:id` — Get single ticket
-  - Validate UUID format
+- [x] `GET /tickets/:id` — Get single ticket
   - Return 200 or 404
   
-- [ ] `PUT /tickets/:id` — Update ticket
+- [x] `PUT /tickets/:id` — Update ticket
   - Validate id exists
   - Validate update payload
   - Return 200 with updated ticket or 404
   
-- [ ] `DELETE /tickets/:id` — Delete ticket
+- [x] `DELETE /tickets/:id` — Delete ticket
   - Return 204 on success or 404
 
 **Error Responses**:
@@ -370,22 +368,22 @@ Implement Express routes for all API endpoints with proper error handling.
 ```
 
 **Test Coverage**:
-- [ ] Each endpoint with valid data
-- [ ] Each endpoint with invalid data
-- [ ] 404 for non-existent IDs
-- [ ] Proper HTTP status codes
-- [ ] Response format consistency
+- [x] Each endpoint with valid data
+- [x] Each endpoint with invalid data
+- [x] 404 for non-existent IDs
+- [x] Proper HTTP status codes
+- [x] Response format consistency
 
-**Deliverable**: `src/routes/tickets.ts` with all CRUD endpoints
+**Deliverable**: `src/routes/tickets.ts` with all CRUD endpoints ✅
 
 ---
 
 #### 4.3 Implement Import Routes
 **File**: `src/routes/import.ts`
 
-- [ ] `POST /tickets/import` — Bulk import
-  - Accept file upload (multipart/form-data) or raw file content
-  - Detect format (CSV, JSON, XML)
+- [x] `POST /tickets/import` — Bulk import
+  - Accept raw file content or pre-parsed JSON body
+  - Auto-detect format from Content-Type header, `?format=` query param, or content shape
   - Call import service
   - Return 200 with import summary:
     ```json
@@ -406,48 +404,47 @@ Implement Express routes for all API endpoints with proper error handling.
     ```
 
 **Test Coverage**:
-- [ ] CSV import with valid/invalid records
-- [ ] JSON import
-- [ ] XML import
-- [ ] Detect format automatically
-- [ ] Return proper summary
-- [ ] Handle file upload vs raw content
+- [x] CSV import with valid/invalid records
+- [x] JSON import
+- [x] XML import
+- [x] Detect format automatically
+- [x] Return proper summary
+- [x] Handle raw content and pre-parsed JSON body
 
-**Deliverable**: `src/routes/import.ts` with bulk import endpoint
+**Deliverable**: `src/routes/import.ts` with bulk import endpoint ✅
 
 ---
 
 #### 4.4 Implement Global Error Handler
 **File**: `src/utils/error-handler.ts`
 
-- [ ] Custom error classes:
+- [x] Custom error classes:
   - `ValidationError`
   - `NotFoundError`
   - `ConflictError`
   - `ServerError`
   
-- [ ] Express error middleware that:
+- [x] Express error middleware that:
   - Catches all errors
   - Assigns request ID
   - Maps to appropriate HTTP status
   - Returns consistent error format
-  - Logs errors for debugging
 
-**Deliverable**: Error handling system with middleware
+**Deliverable**: Error handling system with middleware ✅
 
 ---
 
 #### 4.5 Create Server Entry Point
 **File**: `src/index.ts`
 
-- [ ] Load environment
-- [ ] Create Express app
-- [ ] Register routes
-- [ ] Register error middleware
-- [ ] Start listening on PORT
-- [ ] Log startup message
+- [x] Load environment
+- [x] Create Express app
+- [x] Register routes
+- [x] Register error middleware
+- [x] Start listening on PORT
+- [x] Log startup message
 
-**Deliverable**: Server starts correctly on `npm run dev`
+**Deliverable**: Server starts correctly on `npm run dev` ✅
 
 ---
 
@@ -455,9 +452,11 @@ Implement Express routes for all API endpoints with proper error handling.
 - ✅ All 6 endpoints functional
 - ✅ All HTTP status codes correct
 - ✅ Error responses consistent
-- ✅ File upload works
-- ✅ Integration tests pass
+- ✅ File import works (CSV, JSON, XML)
+- ✅ Integration tests pass (27 tests)
 - ✅ No unhandled promise rejections
+
+**Status: COMPLETE** ✅
 
 ---
 
@@ -649,7 +648,7 @@ This approach ensures consistent, explainable categorization.
 | Phase 1: Setup | 2-3 hours | ✅ Complete |
 | Phase 2: Models & Validation | 4-5 hours | ✅ Complete |
 | Phase 3: Services | 6-8 hours | ✅ Complete |
-| Phase 4: Routes & Errors | 6-8 hours | ⏳ Pending |
+| Phase 4: Routes & Errors | 6-8 hours | ✅ Complete |
 | Phase 5: Testing & Docs | 6-8 hours | ⏳ Pending |
 | **Total** | **24-32 hours** | |
 

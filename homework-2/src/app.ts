@@ -1,32 +1,27 @@
 import express, { Express, Request, Response, NextFunction } from 'express';
-import config from './config';
+import ticketRoutes from './routes/tickets';
+import importRoutes from './routes/import';
+import { requestIdMiddleware, errorMiddleware } from './utils/error-handler';
 
 const app: Express = express();
 
-// Middleware
 app.use(express.json());
-app.use(express.text());
+app.use(express.text({ type: ['text/csv', 'text/xml', 'text/plain', 'application/xml'] }));
 
-// Request logging middleware
-app.use((req: Request, res: Response, next: NextFunction) => {
+app.use((req: Request, _res: Response, next: NextFunction) => {
   console.log(`[${new Date().toISOString()}] ${req.method} ${req.path}`);
   next();
 });
 
-// Health check endpoint
-app.get('/health', (req: Request, res: Response) => {
+app.use(requestIdMiddleware);
+
+app.get('/health', (_req: Request, res: Response) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// Error handling middleware
-app.use((err: any, req: Request, res: Response, next: NextFunction) => {
-  const statusCode = err.statusCode || 500;
-  const message = err.message || 'Internal Server Error';
+app.use('/tickets', importRoutes);
+app.use('/tickets', ticketRoutes);
 
-  res.status(statusCode).json({
-    error: message,
-    details: err.details || [],
-  });
-});
+app.use(errorMiddleware);
 
 export default app;
