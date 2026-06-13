@@ -120,13 +120,12 @@ export function classifyTicket(ticket: Ticket): ClassificationResult {
     }
   }
 
-  let confidence = 0.5 + categoryKeywordsFound.length * 0.15;
-  if (priorityKeywordsFound.length > 0) confidence += 0.05;
+  let confidence = 0.5 + categoryKeywordsFound.length * 0.25;
+  if (priorityKeywordsFound.length > 0) confidence += 0.1;
   if (matchedCategory === Category.Other) {
     confidence = Math.min(confidence, 0.55);
     confidence = Math.max(confidence, 0.40);
   }
-  confidence = Math.min(confidence, 0.95);
   confidence = Math.round(confidence * 100) / 100;
 
   const categoryPart =

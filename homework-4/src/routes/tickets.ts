@@ -43,14 +43,14 @@ router.post('/', (req: Request, res: Response, next: NextFunction): void => {
 });
 
 router.get('/', (req: Request, res: Response): void => {
-  const { category, priority, status, customer_id, assigned_to } = req.query;
+  const { category, priority, status, customer_id, assigned_to, limit } = req.query;
   const filters: FilterOptions = {};
   if (category) filters.category = category as Category;
   if (priority) filters.priority = priority as Priority;
   if (status) filters.status = status as Status;
   if (customer_id) filters.customer_id = customer_id as string;
   if (assigned_to) filters.assigned_to = assigned_to as string;
-  const tickets = getAllTickets(Object.keys(filters).length > 0 ? filters : undefined);
+  let tickets = getAllTickets(Object.keys(filters).length > 0 ? filters : undefined);
   res.json(tickets);
 });
 
