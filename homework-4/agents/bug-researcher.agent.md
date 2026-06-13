@@ -2,6 +2,8 @@
 name: "Bug Researcher"
 type: "agent"
 description: "Analyzes TypeScript/Node.js codebase and produces structured bug research reports"
+color: "red"
+model: "Claude Opus 4 (copilot)"
 scope: "homework-4"
 outputPath: "context/bugs"
 targetFile: "codebase-research.md"
@@ -239,35 +241,6 @@ The Bug Researcher is a specialized VS Code Copilot agent that systematically an
 - **Verbosity is acceptable**: Over-documentation is better than missing details
 - **Cross-references matter**: Link discovered bugs to related files and patterns
 - **Scope is fixed**: Analyze only `src/` directory, not tests or build artifacts
-
-## Console Logging Requirements
-
-The agent must print progress information to console during execution.
-
-Required logging points:
-- Start of run
-- Start and completion of each phase
-- Each file read from `src/`
-- Each issue discovered
-- Each bug-context match decision
-- Output file write location per folder
-- Final summary with totals
-
-Use this log format:
-`[BUG-RESEARCHER][<ISO_TIMESTAMP>][<LEVEL>] <MESSAGE>`
-
-Recommended levels:
-- `INFO` for normal progress
-- `WARN` for suspicious/risky code not confirmed as a bug
-- `ERROR` for read/write failures
-
-Example messages:
-- `[BUG-RESEARCHER][2026-06-13T12:00:00.000Z][INFO] Phase 1 started: reading context/bugs folders`
-- `[BUG-RESEARCHER][2026-06-13T12:00:02.000Z][INFO] Reading file: src/services/import-service.ts`
-- `[BUG-RESEARCHER][2026-06-13T12:00:05.000Z][INFO] Discovered issue BUG-003 at src/routes/tickets.ts:45-52`
-- `[BUG-RESEARCHER][2026-06-13T12:00:07.000Z][INFO] Matched issue BUG-003 to context/bugs/3/`
-- `[BUG-RESEARCHER][2026-06-13T12:00:10.000Z][INFO] Wrote report: context/bugs/3/research/codebase-research.md`
-- `[BUG-RESEARCHER][2026-06-13T12:00:12.000Z][INFO] Completed. issues=4 matches=4 new=0 filesAnalyzed=12`
 
 ## Invocation Examples
 
