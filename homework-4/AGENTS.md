@@ -9,6 +9,9 @@ agents:
   - name: "Bug Planner"
     description: "Applies auto-pick rules and generates implementation plans per bug"
     path: "agents/bug-planner.agent.md"
+  - name: "Bug Fixer"
+    description: "Executes implementation plans, runs tests after each change, and writes fix summaries"
+    path: "agents/bug-fixer.agent.md"
 ---
 
 ## Custom Agents for homework-4
@@ -23,6 +26,8 @@ This file registers custom agents for the Customer Support Ticket System project
 
 **Bug Planner** — Uses verification status and quality matrix rules to auto-pick bugs and write implementation plans.
 
+**Bug Fixer** — Executes approved implementation plans, runs tests after each change step, and documents outcomes in fix summaries.
+
 ## Usage
 
 When working on this project, you can invoke these custom agents:
@@ -30,3 +35,4 @@ When working on this project, you can invoke these custom agents:
 - Use the **Bug Researcher** agent to analyze src/, correlate findings with context/bugs folders, and generate research reports
 - Use the **Research Verifier** agent to validate research claims and produce verified-research outputs
 - Use the **Bug Planner** agent to auto-pick bugs and generate implementation plans
+- Use the **Bug Fixer** agent to apply implementation plans, run tests after each change, and write fix-summary outputs
