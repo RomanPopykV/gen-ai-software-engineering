@@ -15,6 +15,9 @@ agents:
   - name: "Unit Test Generator"
     description: "Generates and runs FIRST-compliant unit tests for changed code and writes test reports"
     path: "agents/unit-test-generator.agent.md"
+  - name: "Security Vulnerabilities Verifier"
+    description: "Reviews changed code for security risks and writes severity-ranked security reports"
+    path: "agents/security-verifier.agent.md"
 skills:
   - name: "Research Quality Measurement"
     description: "Defines measurable quality levels and discrepancy severity for bug research verification"
@@ -40,6 +43,8 @@ This file registers custom agents for the Customer Support Ticket System project
 
 **Unit Test Generator** — Generates and runs tests for changed code only using FIRST principles, then writes test-report outputs.
 
+**Security Vulnerabilities Verifier** — Reviews modified code for security weaknesses and outputs severity-ranked security reports with remediation guidance.
+
 ### Skills
 
 **Research Quality Measurement** — Rubric and scoring guidance used by Research Verifier to assign report quality levels and classify discrepancies.
@@ -55,6 +60,7 @@ When working on this project, you can invoke these custom agents:
 - Use the **Bug Planner** agent to auto-pick bugs and generate implementation plans
 - Use the **Bug Fixer** agent to apply implementation plans, run tests after each change, and write fix-summary outputs
 - Use the **Unit Test Generator** agent to generate/run FIRST-compliant tests for changed code and write test-report outputs
+- Use the **Security Vulnerabilities Verifier** agent to review changed files for vulnerabilities and produce security-report outputs
 
 Available skills in this project:
 
