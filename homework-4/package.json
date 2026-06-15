@@ -10,7 +10,14 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
-    "lint": "tsc --noEmit"
+    "lint": "tsc --noEmit",
+    "pipeline": "node pipeline.js",
+    "pipeline:researcher": "node pipeline.js -- --stage bug-researcher",
+    "pipeline:verifier": "node pipeline.js -- --stage research-verifier",
+    "pipeline:planner": "node pipeline.js -- --stage bug-planner",
+    "pipeline:fixer": "node pipeline.js -- --stage bug-fixer",
+    "pipeline:test-gen": "node pipeline.js -- --stage unit-test-generator",
+    "pipeline:security": "node pipeline.js -- --stage security-verifier"
   },
   "keywords": [
     "support",

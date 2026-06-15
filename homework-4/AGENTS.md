@@ -1,5 +1,8 @@
 ---
 agents:
+  - name: "Pipeline Orchestrator"
+    description: "Runs the complete bug research, verification, planning, fixing, and security review pipeline in sequence"
+    path: "agents/pipeline-orchestrator.agent.md"
   - name: "Bug Researcher"
     description: "Analyzes TypeScript/Node.js codebase and produces structured research reports"
     path: "agents/bug-researcher.agent.md"
@@ -33,6 +36,8 @@ This file registers custom agents for the Customer Support Ticket System project
 
 ### Agents
 
+**Pipeline Orchestrator** — Orchestrates the complete agent pipeline in sequence: Bug Researcher → Research Verifier → Bug Planner → Bug Fixer → Unit Test Generator → Security Verifier. Runs the full workflow with a single command.
+
 **Bug Researcher** — Performs full codebase bug and security research, maps findings to bug folders, and writes structured research reports.
 
 **Research Verifier** — Validates bug research claims against source code and produces verification quality output.
@@ -53,7 +58,47 @@ This file registers custom agents for the Customer Support Ticket System project
 
 ## Usage
 
-When working on this project, you can invoke these custom agents:
+### Running the Complete Pipeline
+
+The easiest way to run all agents in sequence is to use the **Pipeline Orchestrator**:
+
+**Option 1: VS Code Copilot Chat (Recommended)**
+
+```
+@Pipeline Orchestrator Run the complete bug fix pipeline
+```
+
+**Option 2: npm scripts**
+
+```bash
+npm run pipeline              # Full pipeline
+npm run pipeline:researcher   # Individual stages
+npm run pipeline:verifier
+npm run pipeline:planner
+npm run pipeline:fixer
+npm run pipeline:test-gen
+npm run pipeline:security
+```
+
+**Option 3: PowerShell (Windows)**
+
+```powershell
+.\pipeline.ps1                  # Full pipeline
+.\pipeline.ps1 -Stage researcher # Individual stage
+.\pipeline.ps1 -List            # Show all stages
+```
+
+**Option 4: Bash (Unix/Linux)**
+
+```bash
+./pipeline.sh                     # Full pipeline
+./pipeline.sh --stage researcher # Individual stage
+./pipeline.sh --list             # Show all stages
+```
+
+### Running Individual Agents
+
+When working on this project, you can also invoke individual agents directly:
 
 - Use the **Bug Researcher** agent to analyze src/, correlate findings with context/bugs folders, and generate research reports
 - Use the **Research Verifier** agent to validate research claims and produce verified-research outputs
@@ -61,6 +106,19 @@ When working on this project, you can invoke these custom agents:
 - Use the **Bug Fixer** agent to apply implementation plans, run tests after each change, and write fix-summary outputs
 - Use the **Unit Test Generator** agent to generate/run FIRST-compliant tests for changed code and write test-report outputs
 - Use the **Security Vulnerabilities Verifier** agent to review changed files for vulnerabilities and produce security-report outputs
+
+### Pipeline Output
+
+All pipeline outputs are stored in `context/bugs/`:
+
+- `research.md` — Bug research findings
+- `verified-research.md` — Verified and quality-assessed research
+- `implementation-plans.md` — Detailed fix plans
+- `fix-summary.md` — Summary of implemented fixes
+- `test-report.md` — Test generation and validation report
+- `security-report.md` — Security vulnerability assessment
+
+See [PIPELINE.md](PIPELINE.md) for detailed pipeline documentation.
 
 Available skills in this project:
 

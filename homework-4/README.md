@@ -165,6 +165,32 @@ Coverage report is written to `coverage/lcov-report/index.html`.
 
 ---
 
+## Run the Agent Pipeline (Automated Bug Research & Remediation)
+
+The agent pipeline automates the complete workflow for discovering bugs, verifying findings, planning fixes, implementing changes, generating tests, and performing security reviews. Execute it with a single command:
+
+```bash
+# Option 1: Run full pipeline with npm
+npm run pipeline
+
+# Option 2: Run full pipeline with PowerShell (Windows)
+.\pipeline.ps1
+
+# Option 3: Run full pipeline with Bash (macOS/Linux)
+./pipeline.sh
+
+# Option 4: Run in VS Code Copilot Chat (Recommended)
+# Open Copilot Chat and type: @Pipeline Orchestrator Run the complete bug fix pipeline
+```
+
+**Execution Model**: First 4 agents run sequentially (Bug Researcher → Research Verifier → Bug Planner → Bug Fixer), then Unit Test Generator and Security Verifier run in parallel.
+
+**Output**: Results stored in `context/bugs/` directory with detailed reports at each stage.
+
+See [PIPELINE.md](./PIPELINE.md) for complete pipeline documentation, stages, and troubleshooting.
+
+---
+
 ## AI Agent Workflow
 
 The agent framework automates bug discovery, verification, planning, and fixing:
