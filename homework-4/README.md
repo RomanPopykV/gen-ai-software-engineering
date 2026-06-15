@@ -1,65 +1,264 @@
-# Homework 3 — README
+# Customer Support Ticket Management System
 
-## Student & Task Summary
+> **Purpose**: Demonstration of AI-powered bug research, verification, and automated fix implementation workflow  
+> **Audience**: Developers, QA Engineers
 
-**Student**: Roman Popyk
-
-**Task summary**: Designed a complete specification package for **CardFlow**, a finance-oriented web and mobile application that manages the full credit card lifecycle — from application and activation through payments, security controls, smart notifications, and spending insights. Specifications were generated using **Spec Kit** — a structured AI-assisted specification workflow. The deliverable is a multi-artifact spec package comprising a feature specification ([`spec.md`](card-flow/specs/001-credit-card-lifecycle/spec.md)), a technical implementation plan ([`plan.md`](card-flow/specs/001-credit-card-lifecycle/plan.md)), a data model ([`data-model.md`](card-flow/specs/001-credit-card-lifecycle/data-model.md)), API contracts for seven domains ([`contracts/`](card-flow/specs/001-credit-card-lifecycle/contracts/)), an actionable task list ([`tasks.md`](card-flow/specs/001-credit-card-lifecycle/tasks.md)), and a developer quick-start guide ([`quickstart.md`](card-flow/specs/001-credit-card-lifecycle/quickstart.md)). The Spec Kit agent instructions that drove the generation process can be found at [`homework-3/card-flow/AGENTS.md`](card-flow/AGENTS.md). A consolidated `specification.md` was also produced based on the `specification-TEMPLATE-example.md` template for convenient homework review.
-
----
-
-## Rationale
-
-### Why the specification is structured this way
-
-The spec follows a **user-story-first structure** (7 stories, P1–P7) rather than a flat requirements list. Each story maps directly to a distinct business outcome (reducing support calls, increasing activation rates, cutting fraud losses, improving on-time payments). This made prioritisation straightforward: stories that block revenue or carry regulatory risk (application flow, activation) were placed at P1/P2; engagement features (insights) were deferred to P7. The Given/When/Then acceptance scenarios inside each story double as the basis for test cases, which means the spec drives the test suite directly with no translation layer.
-
-The specification was deliberately kept **technology-agnostic** (the `spec.md` layer), while all technical decisions — stack, ORM, auth strategy, queue system, deployment — were deferred to `plan.md` and justified in `research.md` with explicit alternatives considered and rejected. This separation allows the spec to remain readable by non-technical stakeholders and to survive technology changes without being rewritten.
-
-### How performance targets were chosen
-
-The targets in the spec are grounded in **user-perceived thresholds** and **regulatory constraints**, not arbitrary numbers:
-
-| Target                            | Value                 | Reasoning                                                                                                                                                     |
-| --------------------------------- | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Account overview load             | ≤ 2 s at p95          | Google research shows >2 s load time causes measurable conversion drop; also a direct success criterion (SC-006) set by the business                          |
-| Transaction notification delivery | ≤ 60 s at p95         | FR-013 and FR-024 require this; it is also a measurable success criterion (SC-005); 60 s is the industry-standard "near real-time" SLA for card alert systems |
-| Card freeze / unfreeze round-trip | ≤ 5 s                 | FR-019 states this explicitly; a frozen card that takes longer to take effect creates a fraud window — 5 s is the minimum credible protection threshold       |
-| API reads / writes                | p95 ≤ 200 ms / 500 ms | Standard REST API SLAs for financial apps; tight enough to compose without compound latency exceeding the UI budget                                           |
-| PagerDuty alert on fraud latency  | > 90 s                | The 60 s p95 target plus a 50% buffer before alerting, giving room for normal variance without alert fatigue                                                  |
-
-The p95 framing (not p50 or p99) was chosen deliberately: p50 hides tail latency, while p99 is hard to maintain cost-effectively at launch scale and risks over-engineering. p95 is the standard SLA anchor in financial services.
-
-### Why the verification depth is high
-
-Three forces drove the testing depth:
-
-1. **Constitution mandate** (Principle II — Test-First Development): The project constitution is non-negotiable on TDD. Acceptance tests must be written before implementation begins and must be confirmed failing in CI before any implementation code is committed.
-2. **Regulatory and financial risk**: A double-charge in payments, a failed card freeze, or a missing adverse-action notice all carry legal consequences. The spec therefore mandates: idempotency keys on payments, real-database integration tests (no mocks), and explicit integration-test assertions for Reg Z disclosures on application and payment confirmation screens.
-3. **Multi-client architecture**: With three clients (backend, web, mobile) sharing the same API, consumer-driven contract tests (Pact JS) are the only reliable way to detect breaking API changes before they reach production. Pact provider verification runs on every backend deploy.
-
-The decision to use **testcontainers-node** (real PostgreSQL) instead of mocked databases was driven by a prior incident documented in `research.md` (section 9): mock integration tests passed while a production migration silently broke. The constitution codified this lesson as a prohibition on DB mocks for integration tests.
+A Node.js + TypeScript REST API for managing customer support tickets with multi-format bulk import (CSV, JSON, XML), in-memory storage, keyword-based auto-classification, and integrated AI agent framework for bug discovery and remediation.
 
 ---
 
-## Industry Best Practices
+## Features
 
-| Practice                                                    | What it is                                                                                                                                                                            | Where it appears in the spec                                                                                                                                                                                 |
-| ----------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **Test-First Development (TDD / Red-Green-Refactor)**       | Acceptance tests written and confirmed failing before any implementation begins; enforced in CI                                                                                       | `tasks.md` — every user story phase opens with a "Write First — MUST FAIL BEFORE IMPLEMENTATION" block (e.g. T028–T030 for US1, T042–T044 for US2); `plan.md` → Testing Strategy → TDD Protocol              |
-| **Consumer-Driven Contract Testing (Pact JS)**              | API consumers (web, mobile) define the contract; the backend verifies it on every deploy; prevents breaking changes from going undetected                                             | `plan.md` → Testing Strategy (Pact JS row); `tasks.md` — Pact consumer tests per story (T028, T042, T053, T070, T085, T098, T114) and provider verification tasks (T036, T048, T064, T079, T092, T109, T121) |
-| **Immutable Audit Log**                                     | Append-only log of all writes to security-sensitive tables; no UPDATE or DELETE permitted on the log table                                                                            | `data-model.md` → §14 AuditLog entity; `plan.md` → Database Design Approach (Audit log paragraph); `tasks.md` → T091 (Prisma middleware hook)                                                                |
-| **PCI-DSS Tokenisation (PAN vault)**                        | No raw PANs stored in CardFlow; all card numbers delegated to a PCI-certified vault (Basis Theory); reduces audit scope by ~75%                                                       | `plan.md` → Card Vault: Basis Theory; `plan.md` → Security Controls table (PAN handling row); `research.md` → §7 PCI-DSS Compliance & PAN Handling                                                           |
-| **Zero-Trust Auth with Refresh Token Rotation**             | Short-lived access tokens (15 min JWT); rotating 90-day refresh tokens invalidated on every use; theft detection revokes all sessions on replay of a revoked token                    | `plan.md` → Authentication & Authorisation Strategy; `data-model.md` → §2 RefreshToken (Rotation protocol); `research.md` → §6 Auth Implementation                                                           |
-| **Single-Use Confirmation Token for High-Risk Actions**     | Security-control mutations require a separate 60-second single-use token issued by `POST /auth/confirm`; prevents CSRF and session-riding on sensitive operations                     | `plan.md` → Auth → Security Re-confirmation; `data-model.md` → §9 SecurityControl (Validation rules); `tasks.md` → T017, T090                                                                                |
-| **GDPR / CCPA Data Minimisation and Pseudonymisation**      | Soft-delete via `deletedAt`; hard-delete of PII after 30-day grace period; financial records pseudonymised (not deleted) to satisfy record-keeping law                                | `data-model.md` → §1 User (Validation rules — pseudonymisation on erasure); `plan.md` → Database Design Approach (Soft-delete paragraph)                                                                     |
-| **Regulatory Compliance (Reg Z / FCRA)**                    | Adverse-action notice generated as a PDF for every declined application; APR, minimum payment, and fees disclosed on payment confirmation screens; assertions in integration tests    | `spec.md` → FR-004 (adverse-action notice); `plan.md` → Constraints (Reg Z / FCRA row); `tasks.md` → T033 (PDF generation), T134 (Reg Z compliance integration tests)                                        |
-| **Idempotency Keys on Payments**                            | Client-supplied UUID header required on all payment creation requests; server stores the response for 24 hours and returns it on replay, preventing double-charges on network retries | `data-model.md` → §6 Payment (idempotencyKey field + Validation rules); `plan.md` → API Architecture (Idempotency paragraph); `spec.md` → FR-018                                                             |
-| **Keyset (Cursor-Based) Pagination**                        | Transaction and notification lists use cursor pagination on `(cardId, createdAt DESC)` composite indexes rather than SQL `OFFSET`, avoiding performance degradation at scale          | `plan.md` → Database Design Approach (Indexing strategy paragraph); `data-model.md` → §5 Transaction (Indexes), §10 Notification (Indexes); `tasks.md` → T059                                                |
-| **RFC 9457 Problem Details Error Format**                   | All API errors returned as `application/problem+json` with machine-readable `type`, `title`, `status`, and `detail` fields; consistent error contract across all endpoints            | `plan.md` → API Architecture (Error format row); `tasks.md` → T022                                                                                                                                           |
-| **Row-Level Security (PostgreSQL RLS)**                     | RLS policies enforce that service-layer bugs cannot read another user's data; defence-in-depth beyond application-layer `WHERE userId = ?` checks                                     | `plan.md` → Database Design Approach (Row-level security paragraph); `plan.md` → Constraints (PCI-DSS row)                                                                                                   |
-| **Blue-Green Deployment**                                   | Two identical production environments; traffic cut-over only after health checks pass; automatic rollback on error-rate spike; eliminates downtime during releases                    | `plan.md` → CI/CD Pipeline (Release to Production block); `tasks.md` → T135                                                                                                                                  |
-| **OpenTelemetry Distributed Tracing**                       | Fastify, Prisma, BullMQ, and Redis auto-instrumented; traces exported to AWS X-Ray; enables end-to-end latency attribution across async payment and notification pipelines            | `plan.md` → Observability → Tracing; `tasks.md` → T128                                                                                                                                                       |
-| **Prometheus Metrics + Alerting SLAs**                      | Key metrics exposed at `/metrics`; Grafana dashboards; PagerDuty alerts tied to specific latency and error-rate thresholds rather than generic "server down" alerts                   | `plan.md` → Observability → Metrics and Alerting; `tasks.md` → T129–T130                                                                                                                                     |
-| **Dependency-Ordered, Independently Testable User Stories** | Each user story is designed to be testable in isolation before the next story begins; explicit checkpoints validate independence; dependency graph documented                         | `tasks.md` → Dependencies & Execution Order section and per-story Checkpoint statements; `spec.md` → User Scenarios (Independent Test paragraph per story)                                                   |
-| **WCAG 2.1 AA Accessibility**                               | axe-core accessibility audit run via Playwright on all web screens in CI; all critical and serious violations fixed before release                                                    | `plan.md` → Constitution Check (Principle IV UX Consistency); `tasks.md` → T132                                                                                                                              |
+- Full CRUD operations for support tickets
+- Bulk import from CSV, JSON, and XML files with per-record error recovery
+- Auto-classification of tickets by category and priority using keyword matching
+- Zod-based schema validation with detailed error messages
+- Consistent JSON error responses across all endpoints
+- 56-test suite achieving >85% code coverage
+- **AI Agent Framework** for automated bug research, verification, planning, and fixing
+- Structured bug context and implementation plan tracking
+
+---
+
+## Architecture
+
+```mermaid
+graph TD
+    Client([HTTP Client]) --> Routes
+
+    subgraph Express App
+        Routes[Routes Layer<br/>tickets.ts / import.ts]
+        Validators[Validators<br/>ticket-validator / import-validator]
+        Services[Services<br/>ticket-service / import-service]
+        Utils[Utilities<br/>file-parser / error-handler]
+        Classifier[Classifier<br/>classifier.ts]
+        Store[(In-Memory Store<br/>Map&lt;id, Ticket&gt;)]
+    end
+
+    Routes --> Validators
+    Routes --> Services
+    Services --> Store
+    Services --> Validators
+    Services --> Utils
+    Routes --> Utils
+    Classifier --> Store
+
+    subgraph Agents["AI Agent Framework (agents/)"]
+        Researcher["Bug Researcher<br/>Code analysis & discovery"]
+        Verifier["Research Verifier<br/>Fact-checking & quality assessment"]
+        Planner["Bug Planner<br/>Implementation planning"]
+        Fixer["Bug Fixer<br/>Code changes & testing"]
+        TestGen["Unit Test Generator<br/>Test creation & validation"]
+        SecVerifier["Security Verifier<br/>Security review"]
+    end
+
+    Researcher --> Verifier
+    Verifier --> Planner
+    Planner --> Fixer
+    Fixer --> TestGen
+    Fixer --> SecVerifier
+```
+
+---
+
+## Project Structure
+
+```
+homework-4/
+├── src/
+│   ├── app.ts                  # Express middleware setup
+│   ├── index.ts                # Server entry point (port 3000)
+│   ├── config.ts               # Environment variable loader
+│   ├── models/ticket.ts        # TypeScript interfaces and enums
+│   ├── routes/
+│   │   ├── tickets.ts          # CRUD endpoints
+│   │   └── import.ts           # Bulk import endpoint
+│   ├── services/
+│   │   ├── ticket-service.ts   # CRUD + in-memory storage
+│   │   ├── import-service.ts   # Bulk import orchestration
+│   │   └── classifier.ts       # Keyword-based auto-classification
+│   ├── validators/
+│   │   ├── ticket-validator.ts # Zod schemas for ticket fields
+│   │   └── import-validator.ts # File format validation
+│   └── utils/
+│       ├── file-parser.ts      # CSV / JSON / XML parsers
+│       └── error-handler.ts    # Error mapping and Express middleware
+├── agents/
+│   ├── bug-researcher.agent.md         # Codebase analysis agent
+│   ├── research-verifier.agent.md      # Verification agent
+│   ├── bug-planner.agent.md            # Planning agent
+│   ├── bug-fixer.agent.md              # Implementation agent
+│   ├── unit-test-generator.agent.md    # Test generation agent
+│   └── security-verifier.agent.md      # Security review agent
+├── context/bugs/
+│   ├── 1/
+│   │   ├── bug-context.md
+│   │   ├── research/
+│   │   │   ├── codebase-research.md
+│   │   │   └── verified-research.md
+│   │   ├── implementation-plan.md
+│   │   ├── fix-summary.md
+│   │   ├── test-report.md
+│   │   └── security-report.md
+│   └── ...
+├── skills/
+│   ├── research-quality-measurement.md
+│   └── unit-tests-FIRST.md
+├── tests/
+│   ├── test_ticket_api.ts      # API endpoint tests (11)
+│   ├── test_ticket_model.ts    # Data validation tests (9)
+│   ├── test_import_csv.ts      # CSV import tests (6)
+│   ├── test_import_json.ts     # JSON import tests (5)
+│   ├── test_import_xml.ts      # XML import tests (5)
+│   ├── test_categorization.ts  # Classifier tests (10)
+│   ├── test_integration.ts     # End-to-end tests (5)
+│   ├── test_performance.ts     # Benchmark tests (5)
+│   └── fixtures/               # Sample CSV / JSON / XML data
+├── demo/                       # Quick-start scripts and sample data
+├── AGENTS.md                   # Agent framework overview
+├── ARCHITECTURE.md             # Technical architecture details
+├── HOWTORUN.md                 # Setup and execution instructions
+├── API_REFERENCE.md            # API endpoint documentation
+├── INSTRUCTIONS.md             # Project requirements
+├── TASKS.md                    # Homework tasks and checklist
+└── VERIFICATION_REPORT.md      # Agent workflow results summary
+```
+
+---
+
+## Installation & Setup
+
+**Prerequisites**: Node.js v18+, npm v9+
+
+```bash
+# 1. Navigate to the project directory
+cd homework-4
+
+# 2. Install dependencies
+npm install
+
+# 3. Copy environment template (if available)
+cp .env.example .env
+
+# 4. Start the development server (hot-reload)
+npm run dev
+```
+
+The server starts at `http://localhost:3000`.
+
+---
+
+## How to Run Tests
+
+```bash
+# Run all 56 tests
+npm test
+
+# Watch mode (re-runs on file save)
+npm run test:watch
+
+# Coverage report (target >85%)
+npm run test:coverage
+```
+
+Coverage report is written to `coverage/lcov-report/index.html`.
+
+---
+
+## AI Agent Workflow
+
+The agent framework automates bug discovery, verification, planning, and fixing:
+
+1. **Bug Researcher** — Analyzes the codebase and produces detailed research reports
+2. **Research Verifier** — Fact-checks research against source code and assigns quality levels
+3. **Bug Planner** — Determines eligibility and creates implementation plans using auto-pick rules
+4. **Bug Fixer** — Applies code changes and validates with tests
+5. **Unit Test Generator** — Creates FIRST-principle tests for changed code
+6. **Security Verifier** — Reviews fixed code for security vulnerabilities
+
+See [AGENTS.md](./AGENTS.md) for detailed agent roles and invocation examples.
+
+---
+
+## AI Agent Model Strategy
+
+The six agents are split into two performance tiers based on task complexity and correctness criticality:
+
+### Heavy Reasoning & Correctness-Critical Agents
+
+These agents perform complex analysis, verification, and security review where mistakes are expensive. They use **frontier-class models** optimized for accuracy:
+
+- **Bug Researcher** — Requires deep code analysis across files, exact line numbers, and complex pattern matching
+- **Research Verifier** — Must fact-check claims verbatim against source code with high precision
+- **Security Verifier** — Security oversights have high impact; requires thorough threat modeling
+- **Bug Fixer** — Executes implementation plans with mandatory test validation; failures block downstream work
+
+**Model Stack** (2026 pricing):
+
+- Primary: `gpt-5.4` ($2.50 input / $15 output per 1M tokens)
+- Fallback 1: `claude-sonnet-4.6` ($3 / $15)
+- Fallback 2: `gemini-2.5-pro` ($1.25 / $10)
+
+**Rationale**: These agents handle tasks where correctness is non-negotiable. Higher capability justifies 3–6x higher per-token cost versus economy tier.
+
+### Structured & Cost-Optimized Agents
+
+These agents work within tightly constrained scopes where correctness is bounded by rules and rubrics. They use **mid-tier models** that balance capability with speed and cost:
+
+- **Bug Planner** — Applies deterministic auto-pick rules; output quality gates on status × quality matrix
+- **Unit Test Generator** — Follows FIRST principles in a structured test framework; no free-form invention
+
+**Model Stack** (2026 pricing):
+
+- Primary: `gpt-5.4 mini` ($0.75 input / $4.50 output per 1M tokens)
+- Fallback 1: `claude-haiku-4.5` ($1 / $5)
+- Fallback 2: `gemini-2.5-flash` ($0.30 / $2.50)
+
+**Rationale**: Constrained scope means lower token spend per task. Cheaper models execute 4–6x faster and cost 70–80% less, reducing latency and cumulative cost while maintaining output quality within defined guardrails.
+
+### Cost Impact
+
+For typical workflows processing 5–10 bugs:
+
+- Heavy reasoning agents: ~50–100K tokens per bug (correctness > cost)
+- Planning agents: ~10–20K tokens per bug (speed + cost priority)
+- **Estimated monthly savings vs. uniform frontier tier**: 40–50% reduction
+
+---
+
+## Quick API Reference
+
+| Method | Endpoint        | Description               |
+| ------ | --------------- | ------------------------- |
+| POST   | /tickets        | Create a single ticket    |
+| GET    | /tickets        | List tickets (filterable) |
+| GET    | /tickets/:id    | Get ticket by ID          |
+| PUT    | /tickets/:id    | Update ticket fields      |
+| DELETE | /tickets/:id    | Delete a ticket           |
+| POST   | /tickets/import | Bulk import CSV/JSON/XML  |
+
+See [API_REFERENCE.md](./API_REFERENCE.md) for full request/response examples.
+
+---
+
+## Environment Variables
+
+| Variable  | Default     | Description         |
+| --------- | ----------- | ------------------- |
+| PORT      | 3000        | HTTP server port    |
+| NODE_ENV  | development | Runtime environment |
+| LOG_LEVEL | debug       | Logging verbosity   |
+
+---
+
+## Related Documentation
+
+| File                                               | Audience           |
+| -------------------------------------------------- | ------------------ |
+| [AGENTS.md](./AGENTS.md)                           | Agent developers   |
+| [API_REFERENCE.md](./API_REFERENCE.md)             | API consumers      |
+| [ARCHITECTURE.md](./ARCHITECTURE.md)               | Technical leads    |
+| [HOWTORUN.md](./HOWTORUN.md)                       | All users          |
+| [INSTRUCTIONS.md](./INSTRUCTIONS.md)               | Project overview   |
+| [TASKS.md](./TASKS.md)                             | Homework checklist |
+| [VERIFICATION_REPORT.md](./VERIFICATION_REPORT.md) | Results summary    |
