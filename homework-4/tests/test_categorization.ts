@@ -83,6 +83,14 @@ it('classifier result includes reasoning and keywords_found fields', () => {
   expect(typeof result.confidence).toBe('number');
 });
 
+it('confidence is capped at 1.0 when multiple category keywords match', () => {
+  const result = classifyTicket(
+    makeTicket('Login password issue', 'authentication is broken and I am locked out of my account')
+  );
+  expect(result.category).toBe(Category.AccountAccess);
+  expect(result.confidence).toBe(1);
+});
+
 // Test 10
 it('ticket with no priority keywords defaults to medium priority', () => {
   const result = classifyTicket(makeTicket('Invoice incorrect', 'My billing amount looks wrong this month.'));

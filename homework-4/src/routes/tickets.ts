@@ -45,12 +45,36 @@ router.post('/', (req: Request, res: Response, next: NextFunction): void => {
 router.get('/', (req: Request, res: Response): void => {
   const { category, priority, status, customer_id, assigned_to, limit } = req.query;
   const filters: FilterOptions = {};
-  if (category) filters.category = category as Category;
-  if (priority) filters.priority = priority as Priority;
-  if (status) filters.status = status as Status;
+  if (category) {
+    if (!(Object.values(Category) as string[]).includes(category as string)) {
+      res.status(400).json({ error: `Invalid category: ${category}`, details: [], requestId: (req as any).requestId });
+      return;
+    }
+    filters.category = category as Category;
+  }
+  if (priority) {
+    if (!(Object.values(Priority) as string[]).includes(priority as string)) {
+      res.status(400).json({ error: `Invalid priority: ${priority}`, details: [], requestId: (req as any).requestId });
+      return;
+    }
+    filters.priority = priority as Priority;
+  }
+  if (status) {
+    if (!(Object.values(Status) as string[]).includes(status as string)) {
+      res.status(400).json({ error: `Invalid status: ${status}`, details: [], requestId: (req as any).requestId });
+      return;
+    }
+    filters.status = status as Status;
+  }
   if (customer_id) filters.customer_id = customer_id as string;
   if (assigned_to) filters.assigned_to = assigned_to as string;
   let tickets = getAllTickets(Object.keys(filters).length > 0 ? filters : undefined);
+  if (limit) {
+    const limitNum = parseInt(limit as string, 10);
+    if (!isNaN(limitNum) && limitNum > 0) {
+      tickets = tickets.slice(0, limitNum);
+    }
+  }
   res.json(tickets);
 });
 

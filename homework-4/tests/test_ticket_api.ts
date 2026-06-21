@@ -192,6 +192,46 @@ it('GET /tickets?assigned_to filters tickets by assigned agent', async () => {
   expect(res.body[0].assigned_to).toBe('agent-007');
 });
 
+it('GET /tickets?limit=1 returns at most one ticket', async () => {
+  await request(app).post('/tickets').send(validPayload);
+  await request(app).post('/tickets').send({ ...validPayload, customer_email: 'b@b.com' });
+  const res = await request(app).get('/tickets?limit=1');
+  expect(res.status).toBe(200);
+  expect(Array.isArray(res.body)).toBe(true);
+  expect(res.body).toHaveLength(1);
+});
+
+it('GET /tickets ignores non-numeric limit values', async () => {
+  await request(app).post('/tickets').send(validPayload);
+  await request(app).post('/tickets').send({ ...validPayload, customer_email: 'b@b.com' });
+  const res = await request(app).get('/tickets?limit=abc');
+  expect(res.status).toBe(200);
+  expect(res.body).toHaveLength(2);
+});
+
+it('GET /tickets returns 400 for invalid category filter', async () => {
+  const res = await request(app).get('/tickets?category=invalid_value');
+  expect(res.status).toBe(400);
+  expect(res.body.error).toBe('Invalid category: invalid_value');
+});
+
+it('GET /tickets returns 400 for invalid priority filter', async () => {
+  const res = await request(app).get('/tickets?priority=invalid_value');
+  expect(res.status).toBe(400);
+  expect(res.body.error).toBe('Invalid priority: invalid_value');
+});
+
+it('GET /tickets returns 400 for invalid status filter', async () => {
+  const res = await request(app).get('/tickets?status=invalid_value');
+  expect(res.status).toBe(400);
+  expect(res.body.error).toBe('Invalid status: invalid_value');
+});
+
+it('GET /debug/env returns 404 because debug route is not exposed', async () => {
+  const res = await request(app).get('/debug/env');
+  expect(res.status).toBe(404);
+});
+
 // Test 19: POST /tickets/import auto-detects JSON from content shape
 it('POST /tickets/import auto-detects JSON format from content shape', async () => {
   const json = JSON.stringify([validPayload]);

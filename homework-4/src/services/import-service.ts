@@ -80,7 +80,7 @@ export function importTickets(fileContent: string, format: ImportFormat): Import
   return {
     total: records.length,
     successful,
-    failed: records.length - successful,
+    failed: importErrors.length,
     errors: importErrors,
     created_ids,
   };

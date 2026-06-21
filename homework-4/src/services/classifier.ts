@@ -126,6 +126,7 @@ export function classifyTicket(ticket: Ticket): ClassificationResult {
     confidence = Math.min(confidence, 0.55);
     confidence = Math.max(confidence, 0.40);
   }
+  confidence = Math.min(confidence, 1.0);
   confidence = Math.round(confidence * 100) / 100;
 
   const categoryPart =

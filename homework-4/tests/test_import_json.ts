@@ -46,6 +46,7 @@ it('JSON with one invalid record reports error for that record only', () => {
   expect(result.total).toBe(2);
   expect(result.successful).toBe(1);
   expect(result.failed).toBe(1);
+  expect(result.failed).toBe(result.errors.length);
   expect(result.errors[0].recordIndex).toBe(1);
 });
 

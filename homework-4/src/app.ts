@@ -19,14 +19,6 @@ app.get('/health', (_req: Request, res: Response) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-app.get('/debug/env', (req: Request, res: Response) => {
-  res.json({
-    env: process.env,
-    headers: req.headers,
-    requestId: (req as any).requestId,
-  });
-});
-
 app.use('/tickets', importRoutes);
 app.use('/tickets', ticketRoutes);
 
