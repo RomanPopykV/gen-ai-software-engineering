@@ -3,10 +3,10 @@ name: "Unit Test Generator"
 type: "agent"
 description: "Generates and runs unit tests for changed code only, enforcing FIRST principles and documenting outcomes"
 color: "purple"
-model: "gpt-5.4 mini"
+model: "gpt-5.3-codex"
 modelFallbacks:
-  - "claude-haiku-4.5"
-  - "gemini-2.5-flash"
+  - "claude-sonnet-4"
+  - "gemini-2.5-pro"
 scope: "homework-4"
 inputPath: "context/bugs/{N}/fix-summary.md"
 outputPath: "context/bugs/{N}/test-report.md"
@@ -22,6 +22,7 @@ The Unit Test Generator creates and executes unit tests for code changed by Bug 
 
 - Read `context/bugs/{N}/fix-summary.md` and identify changed files/functions.
 - Generate tests for changed code only.
+- Decide and document whether each fix requires new/updated tests or does not require additional test coverage.
 - Follow the project test framework (Jest + ts-jest) and existing test conventions.
 - Apply `skills/unit-tests-FIRST.md` when designing tests.
 - Run tests and capture outcomes.
@@ -52,6 +53,10 @@ For each bug folder `{N}`, read:
 
 3. Implement Tests
    - Add or update test files in `tests/` only where needed.
+   - Place tests in the most appropriate existing test file first:
+     - Prefer a file that already covers the changed module/service/function.
+     - Prefer filename-domain alignment (example: import-related fixes go to files whose name includes `import` when applicable).
+   - Create a new test file only when no suitable existing test file covers the changed logic.
    - Avoid broad regression rewrites unrelated to changed code.
 
 4. Run Tests
@@ -59,11 +64,17 @@ For each bug folder `{N}`, read:
    - If tests fail, record exact failure and stop further test-generation edits.
 
 5. Write Test Report
-   - Write `context/bugs/{N}/test-report.md` with required sections.
+   - Always write `context/bugs/{N}/test-report.md` in the same bug folder as `fix-summary.md`.
+   - If no test is needed for the fix, write a clear justification instead of omitting the report.
 
 ## Output Format Requirements
 
 `test-report.md` must include:
+
+### 0. Coverage Decision
+
+- `Coverage required` or `Coverage not required`
+- Short rationale tied to the fix delta
 
 ### 1. Test Files Generated/Updated
 
@@ -72,6 +83,7 @@ For each test file include:
 - File path
 - Changed test cases
 - Mapped changed source file(s)
+- Why each test file was selected (existing related file vs newly created because no suitable file existed)
 
 ### 2. FIRST Compliance
 
@@ -94,6 +106,7 @@ For each test file include:
 ## Guardrails
 
 - Do not add tests for unchanged code paths.
+- Always produce `test-report.md` for each processed bug folder, even when no test changes are made.
 - Do not skip execution of generated tests.
 - Do not modify production code unless explicitly requested.
 - Stop on failing required tests and report failure clearly.
@@ -102,5 +115,6 @@ For each test file include:
 
 - FIRST skill is applied explicitly.
 - Tests cover changed behavior only.
+- Test file placement follows existing coverage first; new files are created only when necessary.
 - Tests run and outcomes are recorded.
-- `test-report.md` is complete, evidence-based, and reproducible.
+- `test-report.md` is complete, evidence-based, reproducible, and present next to each `fix-summary.md`.

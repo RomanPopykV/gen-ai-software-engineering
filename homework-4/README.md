@@ -7,6 +7,27 @@ A Node.js + TypeScript REST API for managing customer support tickets with multi
 
 ---
 
+## ⚡ Quick Start: Automated Bug Analysis & Fixing
+
+**Run the complete pipeline automatically in VS Code Copilot Chat:**
+
+```
+@Pipeline Orchestrator
+```
+
+That's it! The agent will automatically:
+
+- ✅ Analyze the codebase for bugs (Bug Researcher)
+- ✅ Validate findings (Research Verifier)
+- ✅ Plan implementations (Bug Planner)
+- ✅ Apply fixes (Bug Fixer)
+- ✅ Generate tests & security review (in parallel)
+- ✅ Produce final comprehensive report
+
+See [QUICKSTART.md](./QUICKSTART.md) for details, or [AGENTS.md](./AGENTS.md) for all available agents and options.
+
+---
+
 ## Features
 
 - Full CRUD operations for support tickets
@@ -212,35 +233,29 @@ The six agents are split into two performance tiers based on task complexity and
 
 ### Heavy Reasoning & Correctness-Critical Agents
 
-These agents perform complex analysis, verification, and security review where mistakes are expensive. They use **frontier-class models** optimized for accuracy:
+These agents perform multi-step analysis where missed instructions or weak evidence can break downstream stages. Model selection is based on task behavior, not a single "best" model:
 
-- **Bug Researcher** — Requires deep code analysis across files, exact line numbers, and complex pattern matching
-- **Research Verifier** — Must fact-check claims verbatim against source code with high precision
-- **Security Verifier** — Security oversights have high impact; requires thorough threat modeling
-- **Bug Fixer** — Executes implementation plans with mandatory test validation; failures block downstream work
+- **Bug Researcher** → `claude-haiku-4.5` (primary)
+  - Reason: Best observed compliance for exhaustive, phase-by-phase codebase scanning, verbatim snippets, and exact line-number reporting.
+- **Research Verifier** → `claude-haiku-4.5` (primary)
+  - Reason: Verification quality depends on strict claim-to-code matching and low paraphrasing; this model follows structured fact-check rubrics reliably.
+- **Security Verifier** → `claude-haiku-4.5` (primary)
+  - Reason: Security review output is checklist-driven and evidence-heavy; stronger instruction fidelity improves consistency and reduces skipped checks.
+- **Bug Fixer** → `gpt-5.4` (primary)
+  - Reason: This stage is code-edit and test-execution heavy; frontier GPT remains strong for implementation correctness and iterative fixes.
 
-**Model Stack** (2026 pricing):
-
-- Primary: `gpt-5.4` ($2.50 input / $15 output per 1M tokens)
-- Fallback 1: `claude-sonnet-4.6` ($3 / $15)
-- Fallback 2: `gemini-2.5-pro` ($1.25 / $10)
-
-**Rationale**: These agents handle tasks where correctness is non-negotiable. Higher capability justifies 3–6x higher per-token cost versus economy tier.
+**Rationale**: Correctness-critical stages use whichever model is empirically strongest for that specific stage. In this pipeline, analysis/verifier stages favor high instruction fidelity, while code-change execution favors strong coding and repair performance.
 
 ### Structured & Cost-Optimized Agents
 
-These agents work within tightly constrained scopes where correctness is bounded by rules and rubrics. They use **mid-tier models** that balance capability with speed and cost:
+These agents work within tightly constrained scopes where correctness is bounded by rules and rubrics. They use **cost-efficient models** tailored to the task:
 
-- **Bug Planner** — Applies deterministic auto-pick rules; output quality gates on status × quality matrix
-- **Unit Test Generator** — Follows FIRST principles in a structured test framework; no free-form invention
+- **Bug Planner** → `claude-haiku-4.5` (primary), `gpt-5.4-mini` fallback, `gemini-2.5-flash` fallback
+  - Reason: Planner output is rule-driven and format-sensitive; better instruction adherence improved plan reliability in practice.
+- **Unit Test Generator** → `gpt-5.3-codex` (primary), `claude-sonnet-4` fallback, `gemini-2.5-pro` fallback
+  - Reason: Test generation is implementation-heavy and format-constrained; this model/fallback set gave the best balance of coding reliability and instruction fidelity for strict reporting and placement rules.
 
-**Model Stack** (2026 pricing):
-
-- Primary: `gpt-5.4 mini` ($0.75 input / $4.50 output per 1M tokens)
-- Fallback 1: `claude-haiku-4.5` ($1 / $5)
-- Fallback 2: `gemini-2.5-flash` ($0.30 / $2.50)
-
-**Rationale**: Constrained scope means lower token spend per task. Cheaper models execute 4–6x faster and cost 70–80% less, reducing latency and cumulative cost while maintaining output quality within defined guardrails.
+**Rationale**: Constrained scope allows lower token spend and faster completion while preserving quality through strict templates and downstream validation.
 
 ### Cost Impact
 

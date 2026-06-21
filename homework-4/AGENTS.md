@@ -36,7 +36,7 @@ This file registers custom agents for the Customer Support Ticket System project
 
 ### Agents
 
-**Pipeline Orchestrator** — Orchestrates the complete agent pipeline in sequence: Bug Researcher → Research Verifier → Bug Planner → Bug Fixer → Unit Test Generator → Security Verifier. Runs the full workflow with a single command.
+**Pipeline Orchestrator** — **AUTOMATED COORDINATOR** (recommended entry point). Automatically orchestrates the complete agent pipeline: Bug Researcher → Research Verifier → Bug Planner → Bug Fixer → {Unit Test Generator + Security Verifier in parallel}. Handles all dependencies, monitors outputs, and produces a final comprehensive report. Invoke once in VS Code Copilot Chat and it runs all stages automatically.
 
 **Bug Researcher** — Performs full codebase bug and security research, maps findings to bug folders, and writes structured research reports.
 
@@ -58,21 +58,47 @@ This file registers custom agents for the Customer Support Ticket System project
 
 ## Usage
 
-### Running the Complete Pipeline
+### ⚡ AUTOMATED: Running the Complete Pipeline
 
-The easiest way to run all agents in sequence is to use the **Pipeline Orchestrator**:
-
-**Option 1: VS Code Copilot Chat (Recommended)**
+The easiest and most reliable way to run **all agents automatically** is to invoke the **Pipeline Orchestrator** in VS Code Copilot Chat:
 
 ```
-@Pipeline Orchestrator Run the complete bug fix pipeline
+@Pipeline Orchestrator
 ```
 
-**Option 2: npm scripts**
+Or with more detail:
+
+```
+@Pipeline Orchestrator Run the complete pipeline automatically
+```
+
+The agent will then:
+
+- Automatically invoke Bug Researcher and wait for output
+- Validate research files exist, then proceed to Research Verifier
+- Continue through all stages in dependency order
+- Run Unit Test Generator and Security Verifier in parallel
+- Produce a final comprehensive pipeline report
+
+**Advantages:**
+
+- Fully automated (no manual step-by-step)
+- Handles all dependencies automatically
+- Monitors outputs and validates progress
+- Runs in a single VS Code chat session
+- Provides clear error messages if anything fails
+
+---
+
+### Manual Alternatives: Running the Pipeline Locally
+
+If you prefer to manually run stages from the terminal:
+
+**Option 1: npm scripts (guided workflow)**
 
 ```bash
-npm run pipeline              # Full pipeline
-npm run pipeline:researcher   # Individual stages
+npm run pipeline              # Guided pipeline with prompts
+npm run pipeline:researcher   # Run single stage
 npm run pipeline:verifier
 npm run pipeline:planner
 npm run pipeline:fixer
@@ -80,21 +106,23 @@ npm run pipeline:test-gen
 npm run pipeline:security
 ```
 
-**Option 3: PowerShell (Windows)**
+**Option 2: PowerShell (Windows)**
 
 ```powershell
-.\pipeline.ps1                  # Full pipeline
-.\pipeline.ps1 -Stage researcher # Individual stage
+.\pipeline.ps1                  # Guided pipeline
+.\pipeline.ps1 -Stage researcher # Single stage
 .\pipeline.ps1 -List            # Show all stages
 ```
 
-**Option 4: Bash (Unix/Linux)**
+**Option 3: Bash (Unix/Linux)**
 
 ```bash
-./pipeline.sh                     # Full pipeline
-./pipeline.sh --stage researcher # Individual stage
+./pipeline.sh                     # Guided pipeline
+./pipeline.sh --stage researcher # Single stage
 ./pipeline.sh --list             # Show all stages
 ```
+
+**Note:** These options provide a guided workflow where you manually run each agent in VS Code, then return to the terminal to resume. For fully automatic execution, use **@Pipeline Orchestrator** instead.
 
 ### Running Individual Agents
 
