@@ -36,6 +36,12 @@
       "env": {
         "NOTION_API_KEY": "${input:notion_api_key}"
       }
+    },
+    "custom-fastmcp": {
+      "command": "python",
+      "args": [
+        "${workspaceFolder}/homework-5/custom-mcp-server/server.py"
+      ]
     }
   }
 }
