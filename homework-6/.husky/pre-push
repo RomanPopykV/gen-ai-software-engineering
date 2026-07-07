@@ -1,0 +1,13 @@
+#!/bin/sh
+# Coverage gate: block push if coverage falls below 80%
+# Navigate to homework-6/ regardless of where git push is run from
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+PROJECT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+cd "$PROJECT_DIR" || exit 1
+echo "Running test coverage check before push..."
+npm run test:coverage
+if [ $? -ne 0 ]; then
+  echo "Push blocked: test coverage is below 80%. Fix failing tests or increase coverage before pushing."
+  exit 1
+fi
+echo "Coverage check passed."
