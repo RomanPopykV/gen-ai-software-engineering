@@ -19,12 +19,33 @@ import path from 'path';
 import { z } from 'zod';
 
 // Run via `npm run mcp` from the homework-6/ directory, so cwd is the project root.
-const RESULTS_DIR = path.resolve(process.cwd(), 'shared', 'results');
+const SHARED_DIR = path.resolve(process.cwd(), 'shared');
+const RESULTS_DIR = path.join(SHARED_DIR, 'results');
+const OUTPUT_DIR = path.join(SHARED_DIR, 'output');
 const SUMMARY_FILE = path.join(RESULTS_DIR, 'pipeline-summary.json');
 
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
+
+/** Returns { file, dir } pairs from both results/ (rejected) and output/ (approved/flagged). */
+async function readAllTransactionFiles(): Promise<Array<{ file: string; dir: string }>> {
+  const readDir = async (dir: string, label: string) => {
+    try {
+      const entries = await fs.readdir(dir);
+      return entries
+        .filter((f) => f.endsWith('.json') && f !== 'pipeline-summary.json')
+        .map((file) => ({ file, dir }));
+    } catch {
+      return [] as Array<{ file: string; dir: string }>;
+    }
+  };
+  const [resultFiles, outputFiles] = await Promise.all([
+    readDir(RESULTS_DIR, 'results'),
+    readDir(OUTPUT_DIR, 'output'),
+  ]);
+  return [...resultFiles, ...outputFiles];
+}
 
 async function readResultsDir(): Promise<string[]> {
   try {
@@ -64,11 +85,13 @@ server.tool(
     transaction_id: z.string().describe('The transaction ID to look up (e.g. TXN001)'),
   },
   async ({ transaction_id }) => {
-    const files = await readResultsDir();
+    const allFiles = await readAllTransactionFiles();
 
-    // Match files like TXN001-approved.json, TXN001-flagged.json, TXN001-rejected.json
-    const match = files.find((f) =>
-      f.toLowerCase().startsWith(transaction_id.toLowerCase() + '-'),
+    // Match TXN001-rejected.json (results/) or TXN001.json (output/)
+    const match = allFiles.find(
+      ({ file }) =>
+        file.toLowerCase() === `${transaction_id.toLowerCase()}.json` ||
+        file.toLowerCase().startsWith(`${transaction_id.toLowerCase()}-`),
     );
 
     if (!match) {
@@ -76,14 +99,21 @@ server.tool(
         content: [
           {
             type: 'text',
-            text: `Transaction "${transaction_id}" not found in shared/results/. Has the pipeline been run?`,
+            text: `Transaction "${transaction_id}" not found. Has the pipeline been run?`,
           },
         ],
       };
     }
 
-    const data = await readJson<Record<string, unknown>>(path.join(RESULTS_DIR, match));
-    const statusFromFile = match.replace(`${transaction_id}-`, '').replace('.json', '');
+    const data = await readJson<Record<string, unknown>>(path.join(match.dir, match.file));
+
+    // Derive status: from filename suffix (rejected) or from data.status field (approved/flagged)
+    let status: string;
+    if (match.file.includes('-')) {
+      status = match.file.replace(`${transaction_id}-`, '').replace('.json', '').toUpperCase();
+    } else {
+      status = (data as Record<string, unknown> & { data?: { status?: string } })?.data?.status ?? 'PROCESSED';
+    }
 
     return {
       content: [
@@ -92,8 +122,9 @@ server.tool(
           text: JSON.stringify(
             {
               transaction_id,
-              status: statusFromFile.toUpperCase(),
-              file: match,
+              status,
+              file: match.file,
+              location: match.dir.endsWith('output') ? 'shared/output' : 'shared/results',
               details: data,
             },
             null,
@@ -128,8 +159,8 @@ server.tool(
     }
 
     // Fallback: build a summary from individual result files
-    const files = await readResultsDir();
-    if (files.length === 0) {
+    const allFiles = await readAllTransactionFiles();
+    if (allFiles.length === 0) {
       return {
         content: [
           {
@@ -141,9 +172,9 @@ server.tool(
     }
 
     const counts: Record<string, number> = {};
-    for (const file of files) {
+    for (const { file } of allFiles) {
       const parts = file.replace('.json', '').split('-');
-      const status = parts[parts.length - 1] ?? 'unknown';
+      const status = parts.length > 1 ? (parts[parts.length - 1] ?? 'unknown') : 'approved/flagged';
       counts[status] = (counts[status] ?? 0) + 1;
     }
 
@@ -153,9 +184,9 @@ server.tool(
           type: 'text',
           text: JSON.stringify(
             {
-              total: files.length,
+              total: allFiles.length,
               by_status: counts,
-              files,
+              files: allFiles.map(({ file, dir }) => `${dir.endsWith('output') ? 'output' : 'results'}/${file}`),
             },
             null,
             2,
