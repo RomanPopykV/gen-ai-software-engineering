@@ -16,7 +16,7 @@ style: |
   table { border-collapse: collapse; width: 100%; }
   th { background: #1e40af; color: #e2e8f0; padding: 8px 12px; }
   td { padding: 8px 12px; border-bottom: 1px solid #1e293b; }
-  tr:nth-child(even) td { background: #1e293b; }
+  tr:nth-child(even) td { background: #cbd5e1; color: #0f172a; }
   .green { color: #86efac; }
   .red { color: #fca5a5; }
   .yellow { color: #fde68a; }
