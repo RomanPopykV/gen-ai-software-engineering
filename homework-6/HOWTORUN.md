@@ -96,7 +96,41 @@ Coverage threshold is set at **80%** across branches, functions, lines, and stat
 
 ---
 
-## 5. Type check
+## 5. Run the custom MCP server
+
+Starts the `pipeline-status` MCP server, which exposes the pipeline results to MCP-compatible AI clients (e.g. VS Code Copilot Agent mode).
+
+```bash
+npm run mcp
+```
+
+The server listens on **stdio** (JSON-RPC 2.0) and exposes:
+
+| Type     | Name                     | Description                                         |
+| -------- | ------------------------ | --------------------------------------------------- |
+| Tool     | `get_transaction_status` | Returns status + details for a given transaction ID |
+| Tool     | `list_pipeline_results`  | Returns the full pipeline summary                   |
+| Resource | `pipeline://summary`     | Latest `pipeline-summary.json` as text              |
+
+> **Tip**: Run `npm run pipeline` first to generate results before querying the MCP server.
+
+To test it interactively in a browser UI:
+
+```bash
+npx @modelcontextprotocol/inspector npx tsx mcp/server.ts
+```
+
+Then open the URL printed in the terminal (e.g. `http://localhost:6274/?MCP_PROXY_AUTH_TOKEN=...`).
+
+To test via raw JSON-RPC from the terminal:
+
+```bash
+echo '{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"get_transaction_status","arguments":{"transaction_id":"TXN001"}}}' | npx tsx mcp/server.ts
+```
+
+---
+
+## 6. Type check
 
 ```bash
 npm run lint
@@ -124,6 +158,8 @@ homework-6/
 │       └── server.ts             ← web dashboard (http://localhost:3000)
 ├── tests/                        ← Jest unit + integration tests
 ├── shared/                       ← created at runtime (gitignored)
-├── mcp.json                      ← MCP server config (context7)
+├── mcp/
+│   └── server.ts                 ← custom pipeline-status MCP server
+├── mcp.json                      ← MCP server config (context7 + pipeline-status)
 └── research-notes.md             ← context7 query log
 ```
