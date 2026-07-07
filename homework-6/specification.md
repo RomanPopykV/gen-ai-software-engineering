@@ -46,7 +46,7 @@ Build a multi-agent TypeScript pipeline that reads raw banking transactions from
 - `src/agents/reporting-agent.ts` — reporting agent module.
 - `src/utils/` — shared utilities: file I/O helpers, structured logger, Decimal helpers, ISO 4217 currency list.
 - `src/types/` — shared TypeScript interfaces for `RawTransaction`, `PipelineMessage`, `ValidationResult`, `FraudResult`, and `PipelineSummary`.
-- `src/integrator.ts` — orchestrator that seeds `shared/input/`, runs agents in sequence, and monitors `shared/results/`.
+- `src/orchestrator.ts` — orchestrator that seeds `shared/input/`, runs agents in sequence, and monitors `shared/results/`.
 - `tests/` — Jest unit tests for each agent and one integration test for the full pipeline (coverage ≥ 80%).
 - `shared/results/pipeline-summary.json` — final aggregated pipeline output.
 - `.husky/pre-push` — hook that runs `jest --coverage` and blocks the push if overall coverage falls below 80%.
