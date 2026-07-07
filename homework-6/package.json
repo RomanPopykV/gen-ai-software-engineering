@@ -13,7 +13,7 @@
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
     "lint": "tsc --noEmit",
-    "prepare": "husky"
+    "mcp": "tsx mcp/server.ts"
   },
   "keywords": [
     "banking",
@@ -24,6 +24,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0",
     "decimal.js": "^10.4.3",
     "uuid": "^9.0.0"
   },
